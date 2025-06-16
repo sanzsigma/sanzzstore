@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTERFACE // Sanzz</title>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600&family=Roboto+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    
+    <style>
+        :root {
+            --primary-glow: #00f0ff;
+            --secondary-glow: #b300ff;
+            --matrix-green: #00ff9d;
+            --background-color: #010409;
+            --ui-background: rgba(10, 25, 47, 0.85);
+            --border-color: rgba(0, 240, 255, 0.3);
+            --text-primary: #e5e5e5;
+            --text-secondary: #8b949e;
+            --text-label: #00f0ff;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Roboto Mono', monospace; background-color: var(--background-color); color: var(--text-primary);
+            display: flex; justify-content: center; align-items: flex-start;
+            min-height: 100vh; padding: 20px; overflow-x: hidden; overflow-y: auto;
+        }
+
+        .background-grid { display: none; }
+        
+        .loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--background-color); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            transition: opacity 0.5s ease;
+        }
+        .loader-content { text-align: center; }
+        .loader-spinner {
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-glow);
+            border-radius: 50%; width: 60px; height: 60px;
+            animation: spin 1.5s linear infinite; margin: 0 auto 20px auto;
+        }
+        .loader-text { font-family: 'Orbitron', sans-serif; color: var(--text-label); letter-spacing: 2px; }
+        
+        .hud-container {
+            background-color: var(--ui-background); backdrop-filter: blur(12px); border: 1px solid var(--border-color);
+            border-radius: 8px; box-shadow: 0 0 35px rgba(0, 240, 255, 0.2); width: 100%;
+            max-width: 900px; overflow: hidden; margin: 40px 0;
+            display: none;
+        }
+        
+        .hud-nav {
+            display: flex;
+            border-bottom: 1px solid var(--border-color);
+            overflow-x: auto; 
+            white-space: nowrap; 
+        }
+        .nav-btn {
+            flex: 0 0 auto; 
+            padding: 15px 25px; 
+            background: transparent; border: none; color: var(--text-secondary);
+            font-family: 'Orbitron', sans-serif; font-size: 1rem; cursor: pointer;
+            transition: all 0.3s ease; text-transform: uppercase; letter-spacing: 1px;
+        }
+        .nav-btn.active, .nav-btn:hover { background-color: var(--primary-glow); color: var(--background-color); box-shadow: 0 0 15px var(--primary-glow); }
+        .hud-nav::-webkit-scrollbar { height: 4px; }
+        .hud-nav::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+        .hud-nav::-webkit-scrollbar-thumb { background-color: var(--primary-glow); border-radius: 4px; }
+
+        .hud-content { padding: 0; }
+        .content-panel { display: none; }
+        .content-panel.active { display: block; animation: contentFadeIn 0.5s ease; }
+        .panel-body, .payment-body { padding: 30px; }
+
+        /* GAYA PANEL PROFIL */
+        .profile-image-container { position: relative; width: 110px; height: 110px; margin: 0 auto 20px auto; }
+        .profile-image-container img { width: 100%; height: 100%; object-fit: cover; clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%); }
+        .name-profile { font-family: 'Orbitron', sans-serif; font-size: 1.8rem; text-transform: uppercase; letter-spacing: 2px; color: var(--primary-glow); text-shadow: 0 0 5px var(--primary-glow); text-align: center; }
+        .designation { font-size: 0.9rem; color: var(--text-secondary); margin-top: 5px; text-align: center; margin-bottom: 30px;}
+        
+        .info-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
+        .info-item { background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); padding: 15px; border-radius: 4px; }
+        .info-item .label { display: block; font-size: 0.7rem; color: var(--text-label); text-transform: uppercase; margin-bottom: 5px; letter-spacing: 1px; }
+        .info-item .value, .info-item .value a { font-size: 0.9rem; color: var(--text-primary); text-decoration: none; word-wrap: break-word; }
+        
+        .social-links { display: grid; grid-template-columns: 1fr; gap: 15px; margin-top: 25px;}
+        .social-btn { background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); color: var(--text-primary); padding: 12px 5px; text-decoration: none; border-radius: 4px; font-size: 1.5rem; transition: all 0.3s ease; text-align: center; }
+        .social-btn:hover { background-color: var(--primary-glow); color: var(--background-color); transform: translateY(-3px); box-shadow: 0 0 15px var(--primary-glow); }
+        
+        /* GAYA PANEL PORTOFOLIO & STOK AKUN */
+        .panel-title { font-family: 'Orbitron', sans-serif; font-size: 2rem; text-align: center; margin-bottom: 25px; color: var(--primary-glow); text-shadow: 0 0 8px var(--primary-glow); letter-spacing: 2px; }
+        .portfolio-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 20px; }
+        .portfolio-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; overflow: hidden; transition: all 0.3s ease; display: flex; flex-direction: column; }
+        .portfolio-item:hover { border-color: var(--primary-glow); box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); transform: translateY(-5px); }
+        .portfolio-info { padding: 20px; border-top: 1px solid var(--border-color); flex-grow: 1; }
+        .portfolio-title { font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; font-weight: 600; color: var(--text-primary); margin-bottom: 5px; }
+        .portfolio-tags { font-size: 0.8rem; color: var(--matrix-green); }
+
+        .swiper { width: 100%; height: 180px; }
+        .swiper-slide { text-align: center; font-size: 18px; background: #010409; display: flex; justify-content: center; align-items: center; }
+        .swiper-slide img { display: block; width: 100%; height: 100%; object-fit: cover; }
+        .swiper-button-next, .swiper-button-prev { color: var(--primary-glow) !important; transform: scale(0.7); }
+        .swiper-pagination-bullet-active { background: var(--primary-glow) !important; }
+        .portfolio-item .swiper-button-next, .portfolio-item .swiper-button-prev { opacity: 0; transition: opacity 0.3s ease; }
+        .portfolio-item:hover .swiper-button-next, .portfolio-item:hover .swiper-button-prev { opacity: 1; }
+
+        /* GAYA PANEL PAYMENT */
+        .payment-header { background: linear-gradient(135deg, rgba(0, 240, 255, 0.1), rgba(127, 0, 255, 0.1)); padding: 40px; text-align: center; position: relative; overflow: hidden; clip-path: polygon(0 0, 100% 0, 100% 85%, 50% 100%, 0 85%); }
+        .payment-header h1 { font-family: 'Orbitron', sans-serif; font-size: 2.5rem; font-weight: 900; margin-bottom: 10px; color: var(--primary-glow); text-shadow: 0 0 10px var(--primary-glow), 0 0 20px var(--secondary-glow); letter-spacing: 3px; text-transform: uppercase; }
+        .payment-header p { font-size: 1rem; color: var(--text-secondary); }
+        .method-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .method-item { background: rgba(0, 240, 255, 0.05); border: 1px solid var(--border-color); border-radius: 15px; padding: 25px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: all 0.3s ease; text-align: center; }
+        .method-item:hover { transform: translateY(-10px); box-shadow: 0 0 20px var(--primary-glow); border-color: var(--primary-glow); }
+        .method-item.active { border: 2px solid var(--matrix-green); box-shadow: 0 0 15px var(--matrix-green); }
+        .method-icon { width: 70px; height: 70px; margin-bottom: 15px; object-fit: contain; filter: drop-shadow(0 0 10px var(--primary-glow)); }
+        .method-name { font-family: 'Rajdhani', sans-serif; font-size: 1.3rem; font-weight: 600; margin-bottom: 5px; color: var(--text-primary); }
+        .method-description { font-size: 0.8rem; color: var(--text-secondary); }
+        .method-instruction { background: rgba(0, 5, 20, 0.7); border-radius: 15px; padding: 25px; margin-top: 20px; border-left: 4px solid var(--matrix-green); display: none; animation: contentFadeIn 0.5s ease; }
+        .method-instruction.active { display: block; }
+        .method-instruction h3 { font-family: 'Orbitron', sans-serif; font-size: 1.5rem; margin-bottom: 20px; color: var(--matrix-green); text-shadow: 0 0 10px var(--matrix-green); }
+        .typing-instruction p { font-family: 'Roboto Mono', monospace; font-size: 0.9rem; margin: 10px 0; overflow: hidden; white-space: nowrap; border-right: 2px solid; animation: typing 2.5s steps(40, end), blink-caret .75s step-end infinite; }
+        .copy-number { background: rgba(0, 245, 255, 0.1); border-radius: 10px; padding: 15px; margin: 20px 0; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border-color); }
+        .number-display { font-family: 'Courier New', monospace; font-size: 1.2rem; color: var(--primary-glow); }
+        .copy-btn, .download-btn { background: linear-gradient(to right, var(--primary-glow), var(--secondary-glow)); border: none; border-radius: 8px; padding: 10px 20px; color: #010409; font-weight: 700; cursor: pointer; transition: all 0.3s ease; }
+        .copy-btn:hover, .download-btn:hover { transform: translateY(-3px); box-shadow: 0 0 15px var(--primary-glow); }
+        .qris-container { text-align: center; margin: 20px 0; }
+        .qris-image { max-width: 100%; max-height: 250px; border-radius: 10px; border: 2px solid var(--primary-glow); padding: 5px; background-color: white; box-shadow: 0 0 20px rgba(0, 240, 255, 0.3); }
+
+        /* GAYA FITUR SUARA */
+        .ai-voice-assistant { position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; background: linear-gradient(135deg, var(--primary-glow), var(--secondary-glow)); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; box-shadow: 0 0 20px rgba(0, 240, 255, 0.5); z-index: 100; transition: all 0.3s ease; animation: pulse 2s infinite; }
+        .ai-voice-assistant:hover { transform: scale(1.1); }
+        .ai-voice-assistant i { font-size: 1.5rem; color: var(--background-color); }
+        .voice-wave { position: absolute; width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--matrix-green); opacity: 0; animation: voiceWave 1.5s infinite; }
+        .voice-wave:nth-child(2) { animation-delay: 0.5s; }
+        .voice-wave:nth-child(3) { animation-delay: 1s; }
+        .sound-controls { position: fixed; bottom: 30px; left: 30px; display: flex; gap: 15px; z-index: 100; }
+        .sound-btn { width: 50px; height: 50px; background: var(--ui-background); border: 1px solid var(--border-color); border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; transition: all 0.3s ease; }
+        .sound-btn:hover { background: var(--primary-glow); }
+        .sound-btn i { font-size: 1.2rem; color: var(--text-primary); transition: color 0.3s ease; }
+        .sound-btn:hover i { color: var(--background-color); }
+        
+        /* Animasi */
+        @keyframes moveGrid { from { background-position: 0 0; } to { background-position: 40px 40px; } }
+        @keyframes contentFadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes typing { from { width: 0 } to { width: 100% } }
+        @keyframes blink-caret { from, to { border-color: transparent } 50% { border-color: var(--primary-glow); } }
+        @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+        @keyframes voiceWave { 0% { transform: scale(1); opacity: 0.7; } 100% { transform: scale(1.5); opacity: 0; } }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        /* Responsif */
+        @media (max-width: 600px) { .info-grid, .portfolio-grid { grid-template-columns: 1fr; } .payment-header h1 { font-size: 1.8rem; } .method-list { grid-template-columns: 1fr 1fr; } .social-links {grid-template-columns: 1fr;}}
+        @media (max-width: 480px) { .method-list { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+    
+    <div class="loader"><div class="loader-content"><div class="loader-spinner"></div><div class="loader-text">INITIALIZING INTERFACE...</div></div></div>
+    
+    <div class="background-grid"></div>
+
+    <div class="hud-container">
+        <nav class="hud-nav">
+            <button class="nav-btn active" data-target="#profile-content">PROFIL</button>
+            <button class="nav-btn" data-target="#portfolio-content">PORTOFOLIO</button>
+            <button class="nav-btn" data-target="#payment-content">PAYMENT</button>
+            <button class="nav-btn" data-target="#stock-content">STOK AKUN</button>
+        </nav>
+
+        <div class="hud-content">
+            <div id="profile-content" class="content-panel active">
+                 <div class="panel-body">
+                    <div class="profile-image-container"><img src="https://files.catbox.moe/ftkepd.png" alt="Profile"></div>
+                    
+                    <h1 class="name-profile">SANZ STORE</h1>
+                    <p class="designation">INFORMATION CONTACT </p>
+                    
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <span class="label">KONTAK UTAMA</span>
+                            <span class="value"><a href="tel:+6281934978445">+62 819-3497-8445</a></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">KONTAK REKBER</span>
+                            <span class="value"><a href="tel:+6289528983436">+62 895-2898-3436</a></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">KONTAK JASPOST</span>
+                             <span class="value"><a href="tel:+6281373901127">+62 813-7390-1127</a></span>
+                        </div>
+                        <div class="info-item">
+                            <span class="label">REGION</span>
+                            <span class="value">PEKANBARU, RIAU</span>
+                        </div>
+                    </div>
+
+                    <div class="social-links">
+                        <a href="https://wa.me/6281934978445" target="_blank" class="social-btn" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                        <a href="https://instagram.com/sanzstore_fm" target="_blank" class="social-btn" title="Instagram"><i class="fab fa-instagram"></i></a>
+                        <a href="https://t.me/sanzstorefm" target="_blank" class="social-btn" title="Telegram"><i class="fab fa-telegram"></i></a>
+                        <a href="https://www.tiktok.com/@sannz.sj07" target="_blank" class="social-btn" title="TikTok"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                 </div>
+            </div>
+            <div id="portfolio-content" class="content-panel">
+                <div class="panel-body">
+                    <h1 class="panel-title">PROJECT ARCHIVES</h1>
+                    <div class="portfolio-grid">
+                        
+                        <div class="portfolio-item">
+                           <div class="swiper">
+                              <div class="swiper-wrapper">
+                                <div class="swiper-slide"><img src="swiper-slide"><img src="https://images.unsplash.com/photo-1587620962725-abab7fe55159?q=80&w=1931"></div>
+                                <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=2070" alt="Project 1 Image 2"></div>
+                              </div>
+                              <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h3 class="portfolio-title">Pemrograman & Hostinger</h3>
+                                <span class="portfolio-tags">HTML, CSS, JS, Node.js,Bot WhatsApp</span>
+                            </div>
+                        </div>
+
+                        <div class="portfolio-item">
+                             <div class="swiper">
+                              <div class="swiper-wrapper">
+                                <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1618761714954-0b8cd0026356?q=80&w=870" alt="Project 2 Image 1"></div>
+                              </div>
+                               <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h3 class="portfolio-title">Content Creator</h3>
+                                <span class="portfolio-tags">FOOTBALL GAMES,VIDEO EDITION,JJ,TACTICAL</span>
+                            </div>
+                        </div>
+
+                         <div class="portfolio-item">
+                             <div class="swiper">
+                              <div class="swiper-wrapper">
+                                <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=870alt="Project 3 Image 1"></div>
+                                <div class="swiper-slide"><img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=871" alt="Project 3 Image 2"></div>
+                              </div>
+                               <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h3 class="portfolio-title">Gamers & Bussiness Game</h3>
+                                <span class="portfolio-tags">KEHOBIAN  & JASA,PRODUK, ACCOUNT DIGITAL SEJAK 2022.ANALISIS PASAR ACCOUNT GAME</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="payment-content" class="content-panel">
+                <div class="payment-header">
+                    <h1>Payment Gateway</h1>
+                    <p>Pilih metode pembayaran yang paling nyaman untuk Anda.</p>
+                </div>
+                <div class="payment-body">
+                    <div class="method-list">
+                        <div class="method-item" data-target="#dana-instruction" data-voice="Dana">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/7/72/Logo_dana_blue.svg" alt="DANA" class="method-icon">
+                            <h3 class="method-name">DANA</h3>
+                            <p class="method-description">Cepat & Mudah</p>
+                        </div>
+                        <div class="method-item" data-target="#gopay-instruction" data-voice="Gopay">
+                            <img src="https://upload.wikimedia.org/wikipedia/commons/8/86/Gopay_logo.svg" alt="GoPay" class="method-icon">
+                            <h3 class="method-name">GOPAY</h3>
+                            <p class="method-description">Praktis & Aman</p>
+                        </div>
+                        <div class="method-item" data-target="#ovo-instruction" data-voice="Ovo">
+                             <img src="https://upload.wikimedia.org/wikipedia/commons/e/eb/Logo_ovo_purple.svg" alt="OVO" class="method-icon">
+                            <h3 class="method-name">OVO</h3>
+                            <p class="method-description">Banyak Promo</p>
+                        </div>
+                        <div class="method-item" data-target="#qris-instruction" data-voice="Qris">
+                           <img src="https://files.catbox.moe/abq7q9.png" alt="QRIS" class="method-icon" style="filter: brightness(0) invert(1) drop-shadow(0 0 10px var(--primary-glow));">
+                            <h3 class="method-name">QRIS</h3>
+                            <p class="method-description">Semua E-Wallet</p>
+                        </div>
+                    </div>
+
+                    <div id="dana-instruction" class="method-instruction">
+                        <h3>Instruksi Pembayaran DANA</h3>
+                        <div class="typing-instruction"><p>1. Salin nomor DANA di bawah ini.</p><p>2. Lakukan transfer dari aplikasi DANA Anda.</p><p>3. Konfirmasi pembayaran via WhatsApp.</p></div>
+                        <div class="copy-number"><span class="number-display" id="dana-number">089528983436</span><button class="copy-btn" onclick="copyToClipboard('dana-number')"><i class="fas fa-copy"></i> SALIN</button></div>
+                    </div>
+                    <div id="gopay-instruction" class="method-instruction">
+                        <h3>Instruksi Pembayaran GoPay</h3>
+                        <div class="typing-instruction"><p>1. Salin nomor GoPay tujuan.</p><p>2. Buka aplikasi GoJek dan pilih menu Bayar.</p><p>3. Kirim sesuai nominal dan konfirmasi.</p></div>
+                        <div class="copy-number"><span class="number-display" id="gopay-number">081934978445</span><button class="copy-btn" onclick="copyToClipboard('gopay-number')"><i class="fas fa-copy"></i> SALIN</button></div>
+                    </div>
+                    <div id="ovo-instruction" class="method-instruction">
+                        <h3>Instruksi Pembayaran OVO</h3>
+                         <div class="typing-instruction"><p>1. Salin nomor OVO di bawah.</p><p>2. Masuk ke aplikasi OVO dan pilih Transfer.</p><p>3. Masukkan nomor tujuan dan nominal.</p></div>
+                        <div class="copy-number"><span class="number-display" id="ovo-number">081934978445</span><button class="copy-btn" onclick="copyToClipboard('ovo-number')"><i class="fas fa-copy"></i> SALIN</button></div>
+                    </div>
+                    <div id="qris-instruction" class="method-instruction">
+                        <h3>Scan QRIS</h3>
+                        <div class="typing-instruction"><p>1. Buka aplikasi E-Wallet/M-Banking Anda.</p><p>2. Pilih menu Bayar atau Scan QRIS.</p><p>3. Scan kode di bawah ini.</p></div>
+                        <div class="qris-container">
+                            <img src="https://files.catbox.moe/abq7q9.png" id="qris-image" class="qris-image" alt="QRIS Code">
+                        </div>
+                        <button class="download-btn" id="download-qris"><i class="fas fa-download"></i> UNDUH QRIS</button>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="stock-content" class="content-panel">
+                <div class="panel-body">
+                    <h1 class="panel-title">STOK AKUN TERSEDIA</h1>
+                    <div class="portfolio-grid">
+                        
+                        <div class="portfolio-item">
+                            <div class="swiper">
+                              <div class="swiper-wrapper">
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/vk84rj.jpg" alt="ML 1"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/yol9wd.jpg" alt="ML 2"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/9r7dw7.jpg" alt="ML 3"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/h1tbhv.jpg" alt="ML 4"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/d47i2r.jpg" alt="ML 5"></div>
+                              </div>
+                              <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h3 class="portfolio-title">AKUN ML TERNAMA V #1</h3>
+                                <span class="portfolio-tags">Log: Moonton,high rank: Glory 65,Kolektor: Ternama V,Skin Utama: Ling NeobestHero: 120, Skin: 195, WR: 65%</span>
+                            </div>
+                        </div>
+
+                        <div class="portfolio-item">
+                            <div class="swiper">
+                              <div class="swiper-wrapper">
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/hr6rbd.jpg" alt="FF 1"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/2bzz6w.jpg" alt="FF 2"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/f01vnq.jpg" alt="FF 3"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/1ytpbw.jpg" alt="FF 4"></div>
+                                <div class="swiper-slide"><img src="https://files.catbox.moe/x8z2ef.jpg" alt="FF 5"></div>
+                              </div>
+                              <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h3 class="portfolio-title">AKUN ML TERNAMA #2</h3>
+                                <span class="portfolio-tags">Log : Monsep,High Rank Glory 50,Kolektor Ternama IV,SKIN 250,LANCE ROYAL MATADOR</span>
+                            </div>
+                        </div>
+
+                        <div class="portfolio-item">
+                            <div class="swiper">
+                              <div class="swiper-wrapper">
+                                <div class="swiper-slide"><img src="https://esports.id/img/article/783620220921021443.png" alt="ff 1"></div>
+                                <div class="swiper-slide"><img src="https://gumlet.assettype.com/afkgaming%2F2023-05%2F764032d8-57d1-4235-9176-7870b28416d8%2Fvalorant_account_price_in_india.jpg?compress=true&dpr=1&w=1200" alt="ff 2"></div>
+                                <div class="swiper-slide"><img src="https://dailyspin.id/wp-content/uploads/2020/12/jett-1.jpg" alt="ff 3"></div>
+                                <div class="swiper-slide"><img src="https://cdn.oneesports.id/cdn-data/sites/2/2022/08/Valorant-ChronoVoid-skin-bundle.jpg" alt="ff 4"></div>
+                                <div class="swiper-slide"><img src="https://images.gnwcdn.com/2023/articles/2023-08-28-15-58/valorant-is-getting-a-new-competitive-mode-and-breeze-changes-in-episode-7-act-2-1693234731383.jpg/EG11/resize/1200x-1/valorant-is-getting-a-new-competitive-mode-and-breeze-changes-in-episode-7-act-2-1693234731383.jpg" alt="ff4 5"></div>
+                              </div>
+                              <div class="swiper-button-next"></div><div class="swiper-button-prev"></div><div class="swiper-pagination"></div>
+                            </div>
+                            <div class="portfolio-info">
+                                <h3 class="portfolio-title">kosong</h3>
+                                <span class="portfolio-tags">kosong</span>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+    
+    <div class="ai-voice-assistant" id="voiceAssistant" title="AI Assistant"><i class="fas fa-robot"></i><div class="voice-wave"></div><div class="voice-wave"></div><div class="voice-wave"></div></div>
+    <div class="sound-controls">
+        <div class="sound-btn" id="toggleSound" title="Toggle Sound Effects"><i class="fas fa-volume-up"></i></div>
+        <div class="sound-btn" id="toggleVoice" title="Toggle AI Voice"><i class="fas fa-microphone"></i></div>
+    </div>
+    <audio id="clickSound" src="https://assets.mixkit.co/sfx/preview/mixkit-arcade-game-jump-coin-216.mp3" preload="auto"></audio>
+    <audio id="typingSound" src="https://assets.mixkit.co/sfx/preview/mixkit-fast-typing-on-a-keyboard-2545.mp3" preload="auto" loop></audio>
+    <audio id="successSound" src="https://assets.mixkit.co/sfx/preview/mixkit-achievement-bell-600.mp3" preload="auto"></audio>
+    <audio id="hoverSound" src="https://assets.mixkit.co/sfx/preview/mixkit-sci-fi-positive-interface-beep-257.mp3" preload="auto"></audio>
+    <audio id="voiceDana" src="https://assets.mixkit.co/sfx/preview/mixkit-robot-positively-answer-281.mp3" preload="auto"></audio>
+    <audio id="voiceGopay" src="https://assets.mixkit.co/sfx/preview/mixkit-robot-positively-answer-284.mp3" preload="auto"></audio>
+    <audio id="voiceOvo" src="https://assets.mixkit.co/sfx/preview/mixkit-robot-saying-yes-279.mp3" preload="auto"></audio>
+    <audio id="voiceQris" src="https://assets.mixkit.co/sfx/preview/mixkit-robot-positively-answer-285.mp3" preload="auto"></audio>
+    <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+    
+    <script>
+        // Script tidak ada perubahan
+        window.copyToClipboard = function(elementId) {
+            const element = document.getElementById(elementId);
+            const text = element.textContent.trim();
+            const copyBtn = element.parentElement.querySelector('.copy-btn');
+            const originalText = copyBtn.innerHTML;
+            if (!navigator.clipboard) { alert("Browser Anda tidak mendukung fitur salin otomatis. Silakan salin manual."); return; }
+            navigator.clipboard.writeText(text).then(() => {
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> TERSALIN!';
+                copyBtn.style.background = 'linear-gradient(to right, #00ff9d, #00f5ff)';
+                playSound('successSound'); speak("Nomor berhasil disalin!");
+                setTimeout(() => { copyBtn.innerHTML = originalText; copyBtn.style.background = ''; }, 2000);
+            }).catch(err => { console.error('Gagal menyalin teks: ', err); alert("Gagal menyalin. Pastikan Anda menjalankan ini dari server (HTTPS) dan bukan file lokal."); });
+        };
+
+        function downloadQRIS() {
+            const qrImage = document.getElementById('qris-image');
+            const imageUrl = qrImage.src;
+            const downloadBtn = document.getElementById('download-qris');
+            if (imageUrl.includes('https://files.catbox.moe/abq7q9.png') || !imageUrl) { alert('Gagal mengunduh! Link gambar QRIS belum valid.'); return; }
+            const link = document.createElement('a');
+            link.href = imageUrl; link.download = 'QRIS-Payment.png';
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            const originalText = downloadBtn.innerHTML;
+            downloadBtn.innerHTML = '<i class="fas fa-check"></i> TERUNDUH!';
+            downloadBtn.style.background = 'linear-gradient(to right, #00ff9d, #00f5ff)';
+            playSound('successSound'); speak("QR Code berhasil diunduh.");
+            setTimeout(() => { downloadBtn.innerHTML = originalText; downloadBtn.style.background = ''; }, 2500);
+        }
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            const loader = document.querySelector('.loader');
+            const mainContainer = document.querySelector('.hud-container');
+            setTimeout(() => {
+                loader.style.opacity = '0';
+                mainContainer.style.display = 'block';
+                setTimeout(() => loader.style.display = 'none', 500);
+            }, 1500);
+
+            let soundEnabled = true;
+            let voiceEnabled = true;
+            let synth = window.speechSynthesis;
+
+            window.playSound = function(soundId) { if (!soundEnabled) return; try { const sound = document.getElementById(soundId); sound.currentTime = 0; sound.volume = 0.5; sound.play(); } catch (e) {} }
+            window.stopSound = function(soundId) { try { const sound = document.getElementById(soundId); sound.pause(); sound.currentTime = 0; } catch (e) {} }
+            window.speak = function(text) {
+                if (!voiceEnabled || !synth) return;
+                synth.cancel();
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.lang = 'id-ID'; utterance.rate = 0.9; utterance.pitch = 1.2;
+                document.querySelectorAll('.voice-wave').forEach(wave => { wave.style.animationPlayState = 'running'; });
+                utterance.onend = () => { document.querySelectorAll('.voice-wave').forEach(wave => { wave.style.animationPlayState = 'paused'; }); };
+                synth.speak(utterance);
+            }
+            if (synth && synth.getVoices().length === 0) { synth.onvoiceschanged = () => console.log("Voices loaded."); }
+
+            const downloadQrisButton = document.getElementById('download-qris');
+            if(downloadQrisButton) {
+                downloadQrisButton.addEventListener('click', downloadQRIS);
+            }
+            
+            document.getElementById('toggleSound').addEventListener('click', function() {
+                soundEnabled = !soundEnabled;
+                this.innerHTML = soundEnabled ? '<i class="fas fa-volume-up"></i>' : '<i class="fas fa-volume-mute"></i>';
+                playSound('clickSound');
+            });
+            document.getElementById('toggleVoice').addEventListener('click', function() {
+                voiceEnabled = !voiceEnabled;
+                this.innerHTML = voiceEnabled ? '<i class="fas fa-microphone"></i>' : '<i class="fas fa-microphone-slash"></i>';
+                if(voiceEnabled) speak("Asisten suara aktif."); else if(synth) synth.cancel();
+            });
+            document.getElementById('voiceAssistant').addEventListener('click', function() {
+                playSound('clickSound');
+                speak("Halo, selamat datang di antarmuka saya. Silakan pilih menu yang tersedia.");
+            });
+
+            const navButtons = document.querySelectorAll('.nav-btn');
+            const contentPanels = document.querySelectorAll('.content-panel');
+            navButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    playSound('clickSound');
+                    navButtons.forEach(btn => btn.classList.remove('active'));
+                    contentPanels.forEach(panel => panel.classList.remove('active'));
+                    button.classList.add('active');
+                    const targetPanel = document.querySelector(button.dataset.target);
+                    if (targetPanel) {
+                        targetPanel.classList.add('active');
+                        if(targetPanel.querySelectorAll('.swiper').length > 0) {
+                             initializeSwipersInPanel(targetPanel);
+                        }
+                    }
+                });
+            });
+
+            const methodItems = document.querySelectorAll('.method-item');
+            const instructionPanels = document.querySelectorAll('.method-instruction');
+            methodItems.forEach(item => {
+                item.addEventListener('mouseenter', () => playSound('hoverSound'));
+                item.addEventListener('click', function() {
+                    playSound('clickSound');
+                    const voice = this.dataset.voice;
+                    if (voice) playSound(`voice${voice.charAt(0).toUpperCase() + voice.slice(1)}`);
+                    const methodName = this.querySelector('.method-name').textContent;
+                    speak(`Anda memilih ${methodName}. Berikut instruksinya.`);
+                    
+                    const wasActive = this.classList.contains('active');
+                    methodItems.forEach(i => i.classList.remove('active'));
+                    instructionPanels.forEach(panel => panel.classList.remove('active'));
+
+                    if (!wasActive) {
+                        this.classList.add('active');
+                        const targetInstruction = document.querySelector(this.dataset.target);
+                        if (targetInstruction) {
+                            targetInstruction.classList.add('active');
+                            stopSound('typingSound');
+                            const typingPs = targetInstruction.querySelectorAll('.typing-instruction p');
+                            if (typingPs.length > 0) {
+                                playSound('typingSound');
+                                setTimeout(() => stopSound('typingSound'), 2500 * typingPs.length);
+                            }
+                            typingPs.forEach(p => { p.style.animation = 'none'; p.offsetHeight; p.style.animation = null; });
+                        }
+                    }
+                });
+            });
+            
+            function initializeSwipersInPanel(panel) {
+                panel.querySelectorAll('.swiper').forEach(function(swiperContainer) {
+                    if (!swiperContainer.swiper) {
+                        new Swiper(swiperContainer, {
+                            loop: true,
+                            pagination: { el: swiperContainer.querySelector('.swiper-pagination'), clickable: true, },
+                            navigation: { nextEl: swiperContainer.querySelector('.swiper-button-next'), prevEl: swiperContainer.querySelector('.swiper-button-prev'), },
+                        });
+                    } else {
+                        swiperContainer.swiper.update();
+                    }
+                });
+            }
+
+            initializeSwipersInPanel(document.querySelector('.content-panel.active'));
+        });
+    </script>
+</body>
+</html>
